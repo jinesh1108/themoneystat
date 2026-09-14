@@ -710,10 +710,20 @@ function setupFilt(D) {
     const se = document.getElementById('fSearch'); const sc = se.cloneNode(true); se.parentNode.replaceChild(sc, se); sc.addEventListener('input', () => { tblPage = 0; renderTbl(D, gf()); });
 }
 
+// ── PDF.js Readiness Helper ───────────────────────────────
+async function waitForPDFLib() {
+    if (window.pdfjsLib) return window.pdfjsLib;
+    for (let i = 0; i < 30; i++) {
+        await new Promise(r => setTimeout(r, 100));
+        if (window.pdfjsLib) return window.pdfjsLib;
+    }
+    throw new Error('PDF library is still loading. Please wait a moment and try again.');
+}
+
 // ── GPay PDF Parser ────────────────────────────────────────
 async function parseGPayPDF(arrayBuffer) {
-    if (!window.pdfjsLib) throw new Error('PDF.js not loaded yet. Please wait a moment and try again.');
-    const pdf = await window.pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    const pdfjsLib = await waitForPDFLib();
+    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
     let allText = '';
     for (let i = 1; i <= pdf.numPages; i++) {
         const page = await pdf.getPage(i);
@@ -874,8 +884,8 @@ async function parsePaytmXLSX(file) {
 
 
 async function parsePaytmPDF(arrayBuffer) {
-    if (!window.pdfjsLib) throw new Error('PDF.js not loaded yet. Please wait a moment and try again.');
-    const pdf = await window.pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    const pdfjsLib = await waitForPDFLib();
+    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
     const pagePromises = Array.from({ length: pdf.numPages }, async (_, idx) => {
         const page = await pdf.getPage(idx + 1);
         const content = await page.getTextContent();
@@ -960,8 +970,8 @@ async function parsePaytmPDF(arrayBuffer) {
 }
 
 async function parsePhonePePDF(arrayBuffer) {
-    if (!window.pdfjsLib) throw new Error('PDF.js not loaded yet');
-    const pdf = await window.pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    const pdfjsLib = await waitForPDFLib();
+    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
     
     const pagePromises = Array.from({ length: pdf.numPages }, async (_, idx) => {
         const page = await pdf.getPage(idx + 1);
@@ -1006,8 +1016,8 @@ async function parsePhonePePDF(arrayBuffer) {
 }
 
 async function parsePDF(arrayBuffer) {
-    if (!window.pdfjsLib) throw new Error('PDF.js not loaded yet');
-    const pdf = await window.pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    const pdfjsLib = await waitForPDFLib();
+    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
     
     const pagePromises = Array.from({ length: pdf.numPages }, async (_, idx) => {
         const page = await pdf.getPage(idx + 1);
@@ -1064,26 +1074,60 @@ async function parsePDF(arrayBuffer) {
 
 // ── Source State ───────────────────────────────────────────
 let currentSource = null;
-let bothFiles = { pp: null, gp: null, pt: null };
+let bothFiles = { pp: null, gp: null, pt: null, sm: null, sl: null, mk: null };
+
 function bothPPSelected(file) {
     if (!file.name.toLowerCase().endsWith('.csv') && !file.name.toLowerCase().endsWith('.pdf')) { alert('Please upload a CSV or PDF file for PhonePe'); return; }
     bothFiles.pp = file;
-    document.getElementById('bothPPStatus').textContent = '✓ ' + file.name;
-    document.getElementById('dropBothPP').classList.add('file-ready');
+    const statusEl = document.getElementById('bothPPStatus');
+    if (statusEl) statusEl.textContent = '✓ Uploaded';
+    const slotEl = document.getElementById('dropBothPP');
+    if (slotEl) slotEl.classList.add('file-ready');
     checkAnalyzeBoth();
 }
 function bothGPSelected(file) {
     if (!file.name.toLowerCase().endsWith('.pdf')) { alert('Please upload a PDF file for Google Pay'); return; }
     bothFiles.gp = file;
-    document.getElementById('bothGPStatus').textContent = '✓ ' + file.name;
-    document.getElementById('dropBothGP').classList.add('file-ready');
+    const statusEl = document.getElementById('bothGPStatus');
+    if (statusEl) statusEl.textContent = '✓ Uploaded';
+    const slotEl = document.getElementById('dropBothGP');
+    if (slotEl) slotEl.classList.add('file-ready');
     checkAnalyzeBoth();
 }
 function bothPTSelected(file) {
     if (!file.name.toLowerCase().endsWith('.pdf') && !file.name.toLowerCase().endsWith('.xlsx')) { alert('Please upload a PDF or XLSX file for Paytm'); return; }
     bothFiles.pt = file;
-    document.getElementById('bothPTStatus').textContent = '✓ ' + file.name;
-    document.getElementById('dropBothPT').classList.add('file-ready');
+    const statusEl = document.getElementById('bothPTStatus');
+    if (statusEl) statusEl.textContent = '✓ Uploaded';
+    const slotEl = document.getElementById('dropBothPT');
+    if (slotEl) slotEl.classList.add('file-ready');
+    checkAnalyzeBoth();
+}
+function bothSMSelected(file) {
+    if (!file.name.toLowerCase().endsWith('.pdf')) { alert('Please upload a PDF file for super.money'); return; }
+    bothFiles.sm = file;
+    const statusEl = document.getElementById('bothSMStatus');
+    if (statusEl) statusEl.textContent = '✓ Uploaded';
+    const slotEl = document.getElementById('dropBothSM');
+    if (slotEl) slotEl.classList.add('file-ready');
+    checkAnalyzeBoth();
+}
+function bothSLSelected(file) {
+    if (!file.name.toLowerCase().endsWith('.pdf')) { alert('Please upload a PDF file for Slice'); return; }
+    bothFiles.sl = file;
+    const statusEl = document.getElementById('bothSLStatus');
+    if (statusEl) statusEl.textContent = '✓ Uploaded';
+    const slotEl = document.getElementById('dropBothSL');
+    if (slotEl) slotEl.classList.add('file-ready');
+    checkAnalyzeBoth();
+}
+function bothMKSelected(file) {
+    if (!file.name.toLowerCase().endsWith('.pdf')) { alert('Please upload a PDF file for MobiKwik'); return; }
+    bothFiles.mk = file;
+    const statusEl = document.getElementById('bothMKStatus');
+    if (statusEl) statusEl.textContent = '✓ Uploaded';
+    const slotEl = document.getElementById('dropBothMK');
+    if (slotEl) slotEl.classList.add('file-ready');
     checkAnalyzeBoth();
 }
 
@@ -1092,11 +1136,25 @@ function checkAnalyzeBoth() {
     if (bothFiles.pp) count++;
     if (bothFiles.gp) count++;
     if (bothFiles.pt) count++;
+    if (bothFiles.sm) count++;
+    if (bothFiles.sl) count++;
+    if (bothFiles.mk) count++;
     const btn = document.getElementById('analyzeBoth');
-    if (count >= 2) {
-        btn.classList.remove('hidden');
-    } else {
-        btn.classList.add('hidden');
+    const hint = document.getElementById('bothHint');
+    if (btn) {
+        if (count >= 2) {
+            btn.classList.remove('hidden');
+            if (hint) hint.textContent = `(${count} statements selected. Ready to analyze!)`;
+        } else {
+            btn.classList.add('hidden');
+            if (hint) {
+                if (count === 1) {
+                    hint.textContent = '(1 statement selected. Please select at least 1 more)';
+                } else {
+                    hint.textContent = '(Upload any 2 or more statements to unlock analysis)';
+                }
+            }
+        }
     }
 }
 
@@ -1133,7 +1191,25 @@ function setSourceBadge(src) {
     } else if (src === 'mobikwik') {
         badge.innerHTML = '<img src="mobikwik.png" alt="MobiKwik" class="badge-icon"><span>MobiKwik</span>';
     } else if (src === 'both') {
-        badge.innerHTML = '<div class="both-dual-icon" style="width:36px; height:24px; position:relative; overflow:visible;"><img src="phonepe-icon.png" class="picker-img-dual dual-left" style="width:20px;height:20px;top:2px;"><img src="gpay-icon.png" class="picker-img-dual dual-right" style="width:20px;height:20px;top:2px;"></div><span>Combined</span>';
+        let activeIcons = [];
+        const map = [
+            { k: 'pp', icon: 'phonepe-icon.png', alt: 'PhonePe' },
+            { k: 'gp', icon: 'gpay-icon.png', alt: 'Google Pay' },
+            { k: 'pt', icon: 'paytm-icon.png', alt: 'Paytm', bgWhite: true },
+            { k: 'sm', icon: 'super-money-icon.png', alt: 'super.money' },
+            { k: 'sl', icon: 'slice.png', alt: 'Slice' },
+            { k: 'mk', icon: 'mobikwik.png', alt: 'MobiKwik' }
+        ];
+        map.forEach(m => {
+            if (bothFiles && bothFiles[m.k]) {
+                const style = m.bgWhite ? 'style="background:white;border-radius:50%;"' : '';
+                activeIcons.push(`<img src="${m.icon}" alt="${m.alt}" class="badge-icon" ${style}>`);
+            }
+        });
+        if (!activeIcons.length) {
+            activeIcons.push('<img src="phonepe-icon.png" class="badge-icon">', '<img src="gpay-icon.png" class="badge-icon">');
+        }
+        badge.innerHTML = `<div style="display:flex;align-items:center;gap:4px;">${activeIcons.join('')}</div><span>Combined (${activeIcons.length} Apps)</span>`;
     }
 }
 
@@ -1175,12 +1251,56 @@ document.getElementById('backBoth').onclick = showPicker;
 
 // ── Drop Zone Wiring ──────────────────────────────────────
 function wireDropZone(dropEl, fileInput, handler) {
-    if(!dropEl || !fileInput) return;
-    dropEl.onclick = () => fileInput.click();
-    fileInput.onchange = e => { if (e.target.files.length) handler(e.target.files[0]); };
-    dropEl.ondragover = e => { e.preventDefault(); dropEl.classList.add('over'); };
-    dropEl.ondragleave = () => dropEl.classList.remove('over');
-    dropEl.ondrop = e => { e.preventDefault(); dropEl.classList.remove('over'); if (e.dataTransfer.files.length) handler(e.dataTransfer.files[0]); };
+    if (!dropEl || !fileInput) return;
+    
+    // Prevent double triggering when clicking dropEl
+    dropEl.onclick = e => {
+        if (e.target !== fileInput) {
+            fileInput.click();
+        }
+    };
+    
+    // Prevent input's own click from bubbling back to dropEl
+    fileInput.onclick = e => {
+        e.stopPropagation();
+    };
+
+    // Keyboard trigger (Enter or Space)
+    dropEl.onkeydown = e => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            fileInput.click();
+        }
+    };
+
+    fileInput.onchange = e => {
+        if (e.target.files && e.target.files.length) {
+            const f = e.target.files[0];
+            e.target.value = ''; // Reset value so same file can be re-selected
+            handler(f);
+        }
+    };
+
+    dropEl.ondragover = e => {
+        e.preventDefault();
+        e.stopPropagation();
+        dropEl.classList.add('over');
+    };
+
+    dropEl.ondragleave = e => {
+        e.preventDefault();
+        e.stopPropagation();
+        dropEl.classList.remove('over');
+    };
+
+    dropEl.ondrop = e => {
+        e.preventDefault();
+        e.stopPropagation();
+        dropEl.classList.remove('over');
+        if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) {
+            handler(e.dataTransfer.files[0]);
+        }
+    };
 }
 
 wireDropZone(document.getElementById('dropPhonePe'), document.getElementById('csvFilePhonePe'), handlePhonePe);
@@ -1193,6 +1313,9 @@ wireDropZone(document.getElementById('dropMobiKwik'), document.getElementById('p
 wireDropZone(document.getElementById('dropBothPP'), document.getElementById('csvFileBothPP'), bothPPSelected);
 wireDropZone(document.getElementById('dropBothGP'), document.getElementById('pdfFileBothGP'), bothGPSelected);
 wireDropZone(document.getElementById('dropBothPT'), document.getElementById('fileBothPT'), bothPTSelected);
+wireDropZone(document.getElementById('dropBothSM'), document.getElementById('pdfFileBothSM'), bothSMSelected);
+wireDropZone(document.getElementById('dropBothSL'), document.getElementById('pdfFileBothSL'), bothSLSelected);
+wireDropZone(document.getElementById('dropBothMK'), document.getElementById('pdfFileBothMK'), bothMKSelected);
 
 async function handleBoth() {
     const ld = showLoader('Analyzing multiple sources…');
@@ -1230,7 +1353,25 @@ async function handleBoth() {
                 allTx.push(...ptTx);
             }
         }
-        if (!allTx.length) throw new Error('No transactions found');
+        if (bothFiles.sm) {
+            const buf = await bothFiles.sm.arrayBuffer();
+            const smTx = await parseSuperMoneyPDF(buf);
+            smTx.forEach(t => t.source = 'supermoney');
+            allTx.push(...smTx);
+        }
+        if (bothFiles.sl) {
+            const buf = await bothFiles.sl.arrayBuffer();
+            const slTx = await parseSlicePDF(buf);
+            slTx.forEach(t => t.source = 'slice');
+            allTx.push(...slTx);
+        }
+        if (bothFiles.mk) {
+            const buf = await bothFiles.mk.arrayBuffer();
+            const mkTx = await parseMobiKwikPDF(buf);
+            mkTx.forEach(t => t.source = 'mobikwik');
+            allTx.push(...mkTx);
+        }
+        if (!allTx.length) throw new Error('No transactions found in selected files');
         allTx = allTx.sort((a,b) => a.date - b.date);
         DATA = crunch(allTx);
         buildDashUI(DATA);
@@ -1326,9 +1467,9 @@ function handlePaytm(file) {
 
 
 async function parseSuperMoneyPDF(arrayBuffer) {
-    const pdfjsLib = window.pdfjsLib;
+    const pdfjsLib = await waitForPDFLib();
     const data = new Uint8Array(arrayBuffer);
-    const doc = await pdfjsLib.getDocument(data).promise;
+    const doc = await pdfjsLib.getDocument({ data }).promise;
     const pagePromises = Array.from({ length: doc.numPages }, async (_, idx) => {
         const page = await doc.getPage(idx + 1);
         const content = await page.getTextContent();
@@ -1396,8 +1537,8 @@ function handleSuperMoney(file) {
 }
 
 async function parseSlicePDF(arrayBuffer) {
-    if (!window.pdfjsLib) throw new Error('PDF.js not loaded yet. Please wait a moment and try again.');
-    const pdf = await window.pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    const pdfjsLib = await waitForPDFLib();
+    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
     
     const pagePromises = Array.from({ length: pdf.numPages }, async (_, idx) => {
         const page = await pdf.getPage(idx + 1);
@@ -1549,8 +1690,8 @@ function handleSlice(file) {
 }
 
 async function parseMobiKwikPDF(arrayBuffer) {
-    if (!window.pdfjsLib) throw new Error('PDF.js not loaded yet. Please wait a moment and try again.');
-    const pdf = await window.pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    const pdfjsLib = await waitForPDFLib();
+    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
     
     const pagePromises = Array.from({ length: pdf.numPages }, async (_, idx) => {
         const page = await pdf.getPage(idx + 1);
@@ -1720,10 +1861,20 @@ if (document.getElementById('newBtn')) {
         document.querySelectorAll('.upload-zone').forEach(el => el.classList.add('hidden'));
         
         if (typeof bothFiles !== 'undefined') {
-            bothFiles = { pp: null, gp: null, pt: null };
-            ['PP', 'GP', 'PT'].forEach(k => {
-                if (document.getElementById(`both${k}Status`)) document.getElementById(`both${k}Status`).textContent = 'No file selected';
-                if (document.getElementById(`dropBoth${k}`)) document.getElementById(`dropBoth${k}`).classList.remove('file-ready');
+            bothFiles = { pp: null, gp: null, pt: null, sm: null, sl: null, mk: null };
+            const defaults = {
+                PP: 'Upload (.csv or .pdf)',
+                GP: 'Upload (.pdf)',
+                PT: 'Upload (.pdf or .xlsx)',
+                SM: 'Upload (.pdf)',
+                SL: 'Upload (.pdf)',
+                MK: 'Upload (.pdf)'
+            };
+            ['PP', 'GP', 'PT', 'SM', 'SL', 'MK'].forEach(k => {
+                const statusEl = document.getElementById(`both${k}Status`);
+                if (statusEl) statusEl.textContent = defaults[k];
+                const slotEl = document.getElementById(`dropBoth${k}`);
+                if (slotEl) slotEl.classList.remove('file-ready');
             });
             if (typeof checkAnalyzeBoth === 'function') checkAnalyzeBoth();
         }

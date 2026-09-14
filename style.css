@@ -513,6 +513,141 @@ img,svg{display:block}
 }
 
 /* ── Multiple Apps Drop Zone ────────────────────────────── */
+.multi-header {
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+.multi-title {
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--tx1);
+    letter-spacing: -0.3px;
+    margin-bottom: 0.35rem;
+}
+.multi-sub {
+    font-size: 0.88rem;
+    color: var(--tx2);
+    max-width: 480px;
+    margin: 0 auto;
+}
+.multi-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.85rem;
+    width: 100%;
+    margin-bottom: 1.25rem;
+}
+.multi-slot {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 0.9rem 1rem;
+    border-radius: var(--r);
+    background: var(--card);
+    border: 1.5px dashed var(--brd);
+    cursor: pointer;
+    transition: var(--tr);
+    text-align: left;
+    position: relative;
+    user-select: none;
+    -webkit-user-select: none;
+}
+.multi-slot:hover {
+    border-color: var(--teal);
+    background: var(--card-h);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+}
+.multi-slot:focus-visible {
+    outline: 2px solid var(--teal);
+    outline-offset: 2px;
+}
+.multi-slot.over {
+    border-color: var(--teal);
+    border-style: solid;
+    background: rgba(45, 212, 191, 0.08);
+}
+.multi-slot.file-ready {
+    border-style: solid;
+    border-color: var(--green);
+    background: rgba(34, 197, 94, 0.06);
+    box-shadow: 0 0 16px rgba(34, 197, 94, 0.12);
+}
+.multi-slot.file-ready::after {
+    content: "✓";
+    position: absolute;
+    top: 50%;
+    right: 14px;
+    transform: translateY(-50%);
+    width: 22px;
+    height: 22px;
+    background: rgba(34, 197, 94, 0.15);
+    border: 1px solid rgba(34, 197, 94, 0.4);
+    color: var(--green);
+    font-size: 12px;
+    font-weight: 700;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    box-shadow: 0 0 10px rgba(34, 197, 94, 0.2);
+}
+.multi-slot-icon-wrap {
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--brd);
+    overflow: hidden;
+    padding: 6px;
+}
+.multi-slot-icon {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+.multi-slot-info {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    flex: 1;
+}
+.multi-slot-name {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--tx1);
+    margin-bottom: 2px;
+}
+.multi-slot-status {
+    font-size: 0.74rem;
+    color: var(--tx3);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.multi-slot.file-ready .multi-slot-status {
+    color: var(--green);
+    font-weight: 500;
+}
+.multi-action-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+.multi-hint {
+    font-size: 0.84rem;
+    color: var(--tx3);
+    margin-bottom: 0.85rem;
+    text-align: center;
+}
+
 .both-drops { display: flex; gap: 0.5rem; align-items: stretch; justify-content: center; width: 100%; flex-wrap: nowrap; }
 .drop-third {
     flex: 1; flex-basis: 0; min-width: 0; padding: 1.5rem 0.25rem;
@@ -846,6 +981,32 @@ body.simple .amt-in, body.simple .amt-out {font-size: 1.05rem;}
         align-self: center;
         margin: 0 -2px;
     }
+    .multi-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.65rem;
+    }
+    .multi-slot {
+        padding: 0.75rem 0.8rem;
+        gap: 0.65rem;
+    }
+    .multi-slot-icon-wrap {
+        width: 36px;
+        height: 36px;
+        padding: 4px;
+        border-radius: 8px;
+    }
+    .multi-slot-name {
+        font-size: 0.85rem;
+    }
+    .multi-slot-status {
+        font-size: 0.68rem;
+    }
+    .multi-slot.file-ready::after {
+        right: 10px;
+        width: 18px;
+        height: 18px;
+        font-size: 10px;
+    }
     .analyze-btn {
         width: 100%;
         min-height: 48px;
@@ -1087,6 +1248,19 @@ body.simple .amt-in, body.simple .amt-out {font-size: 1.05rem;}
     .multiple-card .multi-left { left: 0px; }
     .multiple-card .multi-right { right: 0px; }
     .multiple-card .multi-center { left: 10px; }
+    .multi-grid {
+        grid-template-columns: 1fr;
+        gap: 0.55rem;
+    }
+    .multi-slot {
+        padding: 0.7rem 0.85rem;
+    }
+    .multi-title {
+        font-size: 1.2rem;
+    }
+    .multi-sub {
+        font-size: 0.8rem;
+    }
 }
 
 /* Small Phones (<= 380px) */

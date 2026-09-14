@@ -14,10 +14,16 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs" type="module"></script>
     <script type="module">
-        import * as pdfjsLib from 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs';
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.mjs';
+        let pdfjsLib;
+        try {
+            pdfjsLib = await import('./pdf.min.mjs');
+            pdfjsLib.GlobalWorkerOptions.workerSrc = './pdf.worker.min.mjs';
+        } catch (err) {
+            console.warn('Local PDF.js failed, falling back to CDN...', err);
+            pdfjsLib = await import('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs');
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.mjs';
+        }
         window.pdfjsLib = pdfjsLib;
     </script>
     <link rel="stylesheet" href="style.css">
@@ -114,117 +120,157 @@
             <!-- PhonePe Upload Zone -->
             <div class="upload-zone hidden" id="zonePhonePe">
                 <button class="back-btn" id="backPhonePe">← Back</button>
-                <label class="drop" id="dropPhonePe">
+                <div class="drop" id="dropPhonePe" role="button" tabindex="0">
                     <div class="drop-shimmer"></div>
                     <div class="drop-border"></div>
                     <img src="phonepe-icon.png" alt="PhonePe" class="drop-app-icon phonepe-img">
                     <p class="drop-main">Drop PhonePe statement here or <span class="drop-link">browse</span></p>
                     <p class="drop-hint">PhonePe transaction statement (.csv or .pdf)</p>
                     <input type="file" id="csvFilePhonePe" accept=".csv,.pdf" hidden>
-                </label>
+                </div>
             </div>
 
             <!-- GPay Upload Zone -->
             <div class="upload-zone hidden" id="zoneGPay">
                 <button class="back-btn" id="backGPay">← Back</button>
-                <label class="drop" id="dropGPay">
+                <div class="drop" id="dropGPay" role="button" tabindex="0">
                     <div class="drop-shimmer"></div>
                     <div class="drop-border"></div>
                     <img src="gpay-icon.png" alt="Google Pay" class="drop-app-icon gpay-img">
                     <p class="drop-main">Drop Google Pay statement here or <span class="drop-link">browse</span></p>
                     <p class="drop-hint">Google Pay transaction statement (.pdf)</p>
                     <input type="file" id="pdfFileGPay" accept=".pdf" hidden>
-                </label>
+                </div>
             </div>
 
             <!-- Paytm Upload Zone -->
             <div class="upload-zone hidden" id="zonePaytm">
                 <button class="back-btn" id="backPaytm">← Back</button>
-                <label class="drop" id="dropPaytm">
+                <div class="drop" id="dropPaytm" role="button" tabindex="0">
                     <div class="drop-shimmer"></div>
                     <div class="drop-border"></div>
                     <img src="paytm-icon.png" alt="Paytm" class="drop-app-icon paytm-img">
                     <p class="drop-main">Drop Paytm statement here or <span class="drop-link">browse</span></p>
                     <p class="drop-hint">Paytm statement (.pdf or .xlsx)</p>
                     <input type="file" id="filePaytm" accept=".pdf,.xlsx" hidden>
-                </label>
+                </div>
             </div>
 
             <!-- super.money Upload Zone -->
             <div class="upload-zone hidden" id="zoneSuperMoney">
                 <button class="back-btn" id="backSuperMoney">← Back</button>
-                <label class="drop" id="dropSuperMoney">
+                <div class="drop" id="dropSuperMoney" role="button" tabindex="0">
                     <div class="drop-shimmer"></div>
                     <div class="drop-border"></div>
                     <img src="super-money-icon.png" alt="super.money" class="drop-app-icon sm-img">
                     <p class="drop-main">Drop super.money statement here or <span class="drop-link">browse</span></p>
                     <p class="drop-hint">super.money transaction statement (.pdf)</p>
                     <input type="file" id="pdfFileSuperMoney" accept=".pdf" hidden>
-                </label>
+                </div>
             </div>
 
             <!-- Slice Upload Zone -->
             <div class="upload-zone hidden" id="zoneSlice">
                 <button class="back-btn" id="backSlice">← Back</button>
-                <label class="drop" id="dropSlice">
+                <div class="drop" id="dropSlice" role="button" tabindex="0">
                     <div class="drop-shimmer"></div>
                     <div class="drop-border"></div>
                     <img src="slice.png" alt="Slice" class="drop-app-icon slice-img">
                     <p class="drop-main">Drop Slice statement here or <span class="drop-link">browse</span></p>
                     <p class="drop-hint">Slice transaction statement (.pdf)</p>
                     <input type="file" id="pdfFileSlice" accept=".pdf" hidden>
-                </label>
+                </div>
             </div>
 
             <!-- MobiKwik Upload Zone -->
             <div class="upload-zone hidden" id="zoneMobiKwik">
                 <button class="back-btn" id="backMobiKwik">← Back</button>
-                <label class="drop" id="dropMobiKwik">
+                <div class="drop" id="dropMobiKwik" role="button" tabindex="0">
                     <div class="drop-shimmer"></div>
                     <div class="drop-border"></div>
                     <img src="mobikwik.png" alt="MobiKwik" class="drop-app-icon mobikwik-img">
                     <p class="drop-main">Drop MobiKwik statement here or <span class="drop-link">browse</span></p>
                     <p class="drop-hint">MobiKwik transaction statement (.pdf)</p>
                     <input type="file" id="pdfFileMobiKwik" accept=".pdf" hidden>
-                </label>
+                </div>
             </div>
 
             <!-- Both/Combined Upload Zone -->
             <div class="upload-zone hidden" id="zoneBoth">
                 <button class="back-btn" id="backBoth">← Back</button>
-                <div class="both-drops">
-                    <label class="drop drop-third" id="dropBothPP">
-                        <div class="drop-shimmer"></div>
-                        <div class="drop-border"></div>
-                        <img src="phonepe-icon.png" alt="PhonePe" class="drop-app-icon sm phonepe-img">
-                        <p class="drop-main">PhonePe</p>
-                        <p class="drop-hint" id="bothPPStatus">No file selected</p>
+                <div class="multi-header">
+                    <h2 class="multi-title">Multiple Apps Combined</h2>
+                    <p class="multi-sub">Select statements from any 2 or more apps to analyze your unified finances</p>
+                </div>
+                <div class="multi-grid" id="multiGrid">
+                    <!-- PhonePe Slot -->
+                    <div class="multi-slot" id="dropBothPP" role="button" tabindex="0">
+                        <div class="multi-slot-icon-wrap"><img src="phonepe-icon.png" alt="PhonePe" class="multi-slot-icon phonepe-img"></div>
+                        <div class="multi-slot-info">
+                            <span class="multi-slot-name">PhonePe</span>
+                            <span class="multi-slot-status" id="bothPPStatus">Upload (.csv or .pdf)</span>
+                        </div>
                         <input type="file" id="csvFileBothPP" accept=".csv,.pdf" hidden>
-                </label>
-                    <div class="both-plus">+</div>
-                    <label class="drop drop-third" id="dropBothGP">
-                        <div class="drop-shimmer"></div>
-                        <div class="drop-border"></div>
-                        <img src="gpay-icon.png" alt="Google Pay" class="drop-app-icon sm gpay-img">
-                        <p class="drop-main">GPay</p>
-                        <p class="drop-hint" id="bothGPStatus">No file selected</p>
+                    </div>
+
+                    <!-- GPay Slot -->
+                    <div class="multi-slot" id="dropBothGP" role="button" tabindex="0">
+                        <div class="multi-slot-icon-wrap"><img src="gpay-icon.png" alt="Google Pay" class="multi-slot-icon gpay-img"></div>
+                        <div class="multi-slot-info">
+                            <span class="multi-slot-name">Google Pay</span>
+                            <span class="multi-slot-status" id="bothGPStatus">Upload (.pdf)</span>
+                        </div>
                         <input type="file" id="pdfFileBothGP" accept=".pdf" hidden>
-                </label>
-                    <div class="both-plus">+</div>
-                    <label class="drop drop-third" id="dropBothPT">
-                        <div class="drop-shimmer"></div>
-                        <div class="drop-border"></div>
-                        <img src="paytm-icon.png" alt="Paytm" class="drop-app-icon sm paytm-img">
-                        <p class="drop-main">Paytm</p>
-                        <p class="drop-hint" id="bothPTStatus">No file selected</p>
+                    </div>
+
+                    <!-- Paytm Slot -->
+                    <div class="multi-slot" id="dropBothPT" role="button" tabindex="0">
+                        <div class="multi-slot-icon-wrap"><img src="paytm-icon.png" alt="Paytm" class="multi-slot-icon paytm-img paytm-bg-white"></div>
+                        <div class="multi-slot-info">
+                            <span class="multi-slot-name">Paytm</span>
+                            <span class="multi-slot-status" id="bothPTStatus">Upload (.pdf or .xlsx)</span>
+                        </div>
                         <input type="file" id="fileBothPT" accept=".pdf,.xlsx" hidden>
-                </label>
-                                    </div>
-                <p style="text-align:center; color:#a1a1aa; font-size:13px; margin-top:12px;">(Upload any 2 or 3 to combine)</p>
-                <button class="analyze-btn hidden" id="analyzeBoth">
-                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 1v16M1 9h16"/></svg>
-                    Analyze Combined Data
-                </button>
+                    </div>
+
+                    <!-- super.money Slot -->
+                    <div class="multi-slot" id="dropBothSM" role="button" tabindex="0">
+                        <div class="multi-slot-icon-wrap"><img src="super-money-icon.png" alt="super.money" class="multi-slot-icon sm-img"></div>
+                        <div class="multi-slot-info">
+                            <span class="multi-slot-name">super.money</span>
+                            <span class="multi-slot-status" id="bothSMStatus">Upload (.pdf)</span>
+                        </div>
+                        <input type="file" id="pdfFileBothSM" accept=".pdf" hidden>
+                    </div>
+
+                    <!-- Slice Slot -->
+                    <div class="multi-slot" id="dropBothSL" role="button" tabindex="0">
+                        <div class="multi-slot-icon-wrap"><img src="slice.png" alt="Slice" class="multi-slot-icon slice-img"></div>
+                        <div class="multi-slot-info">
+                            <span class="multi-slot-name">Slice</span>
+                            <span class="multi-slot-status" id="bothSLStatus">Upload (.pdf)</span>
+                        </div>
+                        <input type="file" id="pdfFileBothSL" accept=".pdf" hidden>
+                    </div>
+
+                    <!-- MobiKwik Slot -->
+                    <div class="multi-slot" id="dropBothMK" role="button" tabindex="0">
+                        <div class="multi-slot-icon-wrap"><img src="mobikwik.png" alt="MobiKwik" class="multi-slot-icon mobikwik-img"></div>
+                        <div class="multi-slot-info">
+                            <span class="multi-slot-name">MobiKwik</span>
+                            <span class="multi-slot-status" id="bothMKStatus">Upload (.pdf)</span>
+                        </div>
+                        <input type="file" id="pdfFileBothMK" accept=".pdf" hidden>
+                    </div>
+                </div>
+
+                <div class="multi-action-wrap">
+                    <p class="multi-hint" id="bothHint">(Upload any 2 or more statements to unlock analysis)</p>
+                    <button class="analyze-btn hidden" id="analyzeBoth">
+                        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 1v16M1 9h16"/></svg>
+                        <span id="analyzeBothTxt">Analyze Combined Data</span>
+                    </button>
+                </div>
             </div>
 
 
