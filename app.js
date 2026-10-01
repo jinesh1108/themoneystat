@@ -1571,7 +1571,7 @@ async function parseSlicePDF(arrayBuffer) {
         if (firstDateIdx !== -1) startIdx = firstDateIdx;
     }
     
-    const dateRe = /^\d{1,2}\s+[A-Za-z]{3}\s+'?\d{2,4}$/;
+    const dateRe = /^\d{1,2}\s+[A-Za-z]{3,9}\s+'?\d{2,4}$/;
     const groups = [];
     let curr = [];
     
@@ -1597,62 +1597,81 @@ async function parseSlicePDF(arrayBuffer) {
         if (isNaN(dt.getTime())) continue;
         
         // Amount and debit/credit detection
-        const amtIdx = g.length - 2;
+        let amtIdx = g.length - 2;
         let isDebit = false;
         let refIdx = amtIdx - 1;
         const amtStr = g[amtIdx];
+        const prev = g[amtIdx - 1];
         
-        if (amtStr.startsWith('₹') || amtStr.startsWith('Rs')) {
-            if (amtIdx - 1 >= 1 && g[amtIdx - 1] === '-') {
-                isDebit = true;
-                refIdx = amtIdx - 2;
-            } else {
-                isDebit = false;
-                refIdx = amtIdx - 1;
-            }
-        } else if (amtStr.startsWith('-')) {
+        // Detection across formats:
+        // Format A (separate token '-' or '+'): [...details, ref, "-", "₹5,000", "₹12,345"]
+        // Format B (sign embedded in amount): [...details, ref, "3₹900", "₹2,345"]
+        // Note: In custom Slice PDF embedded fonts, the minus '-' glyph is extracted as ASCII '3'
+        if (/^[3–—−\-]\s*₹/.test(amtStr) || amtStr.startsWith('-') || amtStr.startsWith('–') || amtStr.startsWith('—')) {
             isDebit = true;
             refIdx = amtIdx - 1;
-        } else if (amtStr.startsWith('+')) {
+        } else if (amtIdx - 1 >= 1 && (prev === '-' || prev === '–' || prev === '—' || prev === '3')) {
+            isDebit = true;
+            refIdx = amtIdx - 2;
+        } else if (amtIdx - 1 >= 1 && prev === '+') {
+            isDebit = false;
+            refIdx = amtIdx - 2;
+        } else if (/^\+\s*₹/.test(amtStr) || amtStr.startsWith('+')) {
             isDebit = false;
             refIdx = amtIdx - 1;
         } else {
+            isDebit = false;
             refIdx = amtIdx - 1;
         }
         
-        const cleanAmtStr = amtStr.replace(/[^\d.]/g, '');
-        const amt = parseFloat(cleanAmtStr);
+        // Clean amount:
+        // Strip any leading sign ('3', '-', '+', unicode dashes) and rupee/currency symbol
+        let numStr = amtStr.replace(/^[3+–—−\-]\s*/, '').replace(/^[₹Rs\.]+\s*/, '');
+        numStr = numStr.replace(/,/g, '').trim();
+        const amt = parseFloat(numStr);
         if (isNaN(amt) || amt <= 0) continue;
         
-        const detTokens = g.slice(1, refIdx);
-        const det = detTokens.join(' ').trim();
+        // Details tokens
+        const detTokens = g.slice(1, Math.max(1, refIdx + 1));
+        let rawDet = detTokens.join(' ').trim();
+        let det = rawDet;
+        
+        // Normalize font '3' delimiter if present in UPI/interest descriptions
+        if (/UPI\s*(?:Debit|Credit)3/i.test(det) || /Interest Cr.*3/i.test(det)) {
+            det = det.replace(/([A-Za-z0-9@.])3([A-Za-z0-9@.])/g, '$1 - $2');
+        }
         
         // Extract merchant / party
         let merchName = det;
-        const upiMatch = det.match(/^UPI-(?:Debit|Credit|Reversal)-\d+-([^-]+)/i);
-        const impsMatch = det.match(/^IMPS-(?:Debit|Credit)-REF\s+\d+-TO\s+([^-]+)/i);
-        const dcMatch = det.match(/^DC\s+ECOM-(?:Debit|Refund)-\d+-([^-]+)/i);
-        const atmMatch = det.match(/^ATM-(?:Debit|Credit)-\d+-([^-]+)/i);
+        const oldUpi = det.match(/UPI-(?:Debit|Credit|Reversal)-\d+-([^-]+)/i);
+        const newUpi = det.match(/UPI\s*(?:Debit|Credit|Reversal)\s*[3\-–—]\s*([A-Za-z0-9\s.]+?)(?:[3\-–—]|$)/i);
+        const impsMatch = det.match(/IMPS[-–\s]*(?:Debit|Credit)[-–\s]*REF\s+\d+[-–\s]*TO\s+([^-3]+)/i);
+        const dcMatch = det.match(/DC\s+ECOM[-–\s]*(?:Debit|Refund)[-–\s]*(?:\d+[-–\s]*)?([^-3]+)/i);
+        const atmMatch = det.match(/ATM[-–\s]*(?:Debit|Credit)[-–\s]*(?:\d+[-–\s]*)?([^-3]+)/i);
         
-        if (upiMatch) {
-            merchName = upiMatch[1].trim();
+        if (oldUpi) {
+            merchName = oldUpi[1].trim();
+        } else if (newUpi) {
+            merchName = newUpi[1].trim();
         } else if (impsMatch) {
             merchName = impsMatch[1].trim();
         } else if (dcMatch) {
             merchName = dcMatch[1].trim();
         } else if (atmMatch) {
             merchName = atmMatch[1].trim();
-        } else if (det.startsWith('Interest Cr.')) {
+        } else if (/Interest Cr/i.test(det)) {
             merchName = 'Interest Credit';
-        } else if (det.includes('Round ups')) {
+        } else if (/Round ups/i.test(det)) {
             merchName = 'Round ups';
-        } else if (det.includes('monies transfer')) {
+        } else if (/monies transfer/i.test(det)) {
             merchName = 'Monies Transfer';
-        } else if (det.includes('Bill payment')) {
+        } else if (/Bill payment/i.test(det)) {
             merchName = 'Bill Payment';
-        } else if (det.includes('Weekly saver')) {
+        } else if (/Weekly saver/i.test(det)) {
             merchName = 'Weekly Saver';
         }
+        
+        merchName = merchName.replace(/^\d+\s*[-–]?\s*/, '').trim();
         
         txs.push({
             date: dt,
@@ -1661,7 +1680,7 @@ async function parseSlicePDF(arrayBuffer) {
             det: det,
             amt: amt,
             type: isDebit ? 'DEBIT' : 'CREDIT',
-            cat: catOf(det),
+            cat: catOf(merchName || det),
             merch: mName(merchName),
             source: 'slice'
         });
